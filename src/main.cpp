@@ -33,7 +33,20 @@ int main()
   uWS::Hub h;
 
   PID pid;
-  // TODO: Initialize the pid variable.
+  // tuning discussion
+  // I first only included the proportional control
+  // pid.Init(1, 0.0, 0.0);
+  // The effect of this is shown in Video1
+  // As expected without Kd and Ki the behavior is very oscillatory
+  // I then added derivative term Kd
+  // pid.Init(1, 0, 5);
+  // As expected this dampens the motion and increasing the Kd value
+  // causes the steering to reach quick steady state when driving in straight line
+  // The resulting video is saved as VideoKpKd
+  // Finally to make sure the steady state is the correct one corresponding to 0 cte
+  // I added a small Ki term, as expected this stabilized the driving even further
+  // and after some further manual tuning the car is able to drive comlete laps
+  pid.Init(0.2, 0.005, 3.0);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -57,9 +70,19 @@ int main()
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
-          
+          pid.UpdateError(cte);
+          steer_value = pid.steering();
+          if (steer_value < -1)
+          {
+            steer_value = -1;
+          }
+          if (steer_value > 1)
+          {
+            steer_value = 1;
+          }
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+          std::cout << "Total: " << pid.TotalError() << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;

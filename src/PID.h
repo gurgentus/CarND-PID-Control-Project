@@ -10,9 +10,12 @@ public:
   double i_error;
   double d_error;
 
+  // this will keep track of square error
+  // for pid tuning
+  double tot_error;
   /*
   * Coefficients
-  */ 
+  */
   double Kp;
   double Ki;
   double Kd;
@@ -41,6 +44,11 @@ public:
   * Calculate the total PID error.
   */
   double TotalError();
+
+  /*
+  * return the steering value
+  */
+  double steering();
 };
 
 #endif /* PID_H */
